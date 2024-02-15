@@ -40,7 +40,7 @@ export default function Header() {
                         Home
                     </li>
                     <li className={`cursor-pointer py-3 text-sm font-semibold text-gray-400 border-b-[3px] border-b-transparent ${
-                        pathMatchRoute("/") && "text-black border-b-red-500"
+                        pathMatchRoute("/offers") && "text-black border-b-red-500"
                     }`}
                     onClick={() => navigate("/offers")}
                     >
@@ -53,6 +53,7 @@ export default function Header() {
                     onClick={() => navigate("/profile")}
                     >
                         {/* {pageState} */}
+                        Sign in
                     </li>
                 </ul>
             </div>
