@@ -81,7 +81,7 @@ export default function SignIn() {
             <button className='w-full bg-blue-600 text-white px-7 py-3 text-sm font-medium uppercase rounded shadow-md hover:bg-blue-700 transition duration-150 ease-in-out hover:shadow-lg active:bg-blue-800' 
             type='submit'
             >
-              Sign in
+              Sign up
             </button>
             <div className='flex items-center my-4 before:border-t before:flex-1 before:border-gray-300 after:border-t after:flex-1 after:border-gray-300'>
               <p className='text-centre font-semibold mx-4'>OR</p>
