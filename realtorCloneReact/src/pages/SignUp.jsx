@@ -3,6 +3,13 @@ import { useState } from 'react';
 import { AiFillEyeInvisible, AiFillEye} from "react-icons/ai"
 import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../components/OAuth';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile
+} from "firebase/auth";
+import { db } from "../firebase";
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +30,28 @@ export default function SignUp() {
 
   async function onSubmit(e){
     e.preventDefault();
+
+    try {
+      const auth = getAuth();
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      updateProfile(auth.currentUser, {
+        displayName: name,
+      });
+      const user = userCredential.user;
+      console.log(user);
+      const formDataCopy = { ...formData };
+      delete formDataCopy.password;
+      formDataCopy.timestamp = serverTimestamp();
+
+      await setDoc(doc(db, "users", user.id), formDataCopy);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
