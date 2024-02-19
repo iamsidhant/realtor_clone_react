@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react';
 import { AiFillEyeInvisible, AiFillEye} from "react-icons/ai"
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import OAuth from '../components/OAuth';
 import {
   getAuth,
@@ -10,6 +10,8 @@ import {
 } from "firebase/auth";
 import { db } from "../firebase";
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { toast } from "react-toastify";
 
 export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -48,9 +50,11 @@ export default function SignUp() {
       delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
 
-      await setDoc(doc(db, "users", user.id), formDataCopy);
+      await setDoc(doc(db, "users", user.uid), formDataCopy);
+      // toast.success("Sign up was successful");
+      // navigate("/");
     } catch (error) {
-      console.log(error);
+      toast.error("Something went wrong with the registration");
     }
   }
 
