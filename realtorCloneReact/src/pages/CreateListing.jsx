@@ -1,10 +1,12 @@
 import React from 'react'
 import { useState } from 'react'
 import {useNavigate} from "react-router-dom"
+import { toast } from "react-toastify"
 
 export default function CreateListing() {
     const navigate = useNavigate();
     const [geoLocationEnabled, setGeoLocationEnabled] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
         type: "rent",
         name: "",
@@ -35,7 +37,7 @@ export default function CreateListing() {
         discountedPrice,
         images,
         longitude,
-        latitude
+        latitude,
     } = formData;
 
     function onChange(e){
@@ -63,10 +65,49 @@ export default function CreateListing() {
             }));
         }
     }
+
+    async function onSubmit(e){
+        e.preventDefault();
+        setLoading(true);
+        if (+discountedPrice >= regularPrice) {
+            setLoading(false);
+            toast.error("Discounted Price needs to be less than regular Price");
+            return;
+        }
+        if (images.length > 6) {
+            setLoading(false);
+            toast.error("maximum 6 images are allowed");
+            return;
+        }
+        let geolocation = {};
+        let location;
+        if (geoLocationEnabled) {
+            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.REACT_APP_GEOCODE_API_KEY}`);
+            const data = await response.json();
+            console.log(data);
+            geolocation.lat = data.results[0]?.geometry.location.lat ?? 0;
+            geolocation.lng = data.results[0]?.geometry.location.lng ?? 0;
+
+            location = data.status === "ZERO_RESULTS" && undefined;
+
+            if (location === undefined) {
+                setLoading(false);
+                toast.error("Please enter a correct address");
+                return;
+            } else {
+                geolocation.lat = latitude;
+                geolocation.lng = longitude;
+            }
+        }
+    }
+
+    if (loading) {
+        return <Spinner/>;
+    }
   return (
     <main className='max-w-md p-2 mx-auto'>
         <h1 className='text-3xl text-center mt-6 font-bold'>Create a listing</h1>
-        <form>
+        <form onSubmit={onSubmit}>
             <p className='text-lg mt-6 font-semibold'>Sell / Rent</p>
             <div className='flex'>
                 <button
@@ -192,7 +233,7 @@ export default function CreateListing() {
             required
             className="w-full px-4 py-2 text-xl text-gray-700 bg-white border border-gray-300 rounded transition duration-150 ease-in-out focus:text-gray-700 focus:bg-white focus:border-slate-600 mb-6"
             />
-            {/* {!geolocationEnabled && (
+            {!geoLocationEnabled && (
                 <div className="flex space-x-6 justify-start mb-6">
                     <div className="">
                     <p className="text-lg font-semibold">Latitude</p>
@@ -221,11 +262,11 @@ export default function CreateListing() {
                     />
                     </div>
                 </div>
-                )} */}
+                )}
             <p className='text-lg font-semibold'>Description</p>
             <textarea
             type="text"
-            id="Description"
+            id="description"
             value={description}
             onChange={onChange}
             placeholder="Description"
