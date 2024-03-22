@@ -2,9 +2,19 @@ import React from 'react'
 import { useState } from 'react'
 import {useNavigate} from "react-router-dom"
 import { toast } from "react-toastify"
+import { 
+    getStorage,
+    ref,
+    uploadBytesResumable,
+    getDownloadURL
+} from "firebase/storage";
+import { getAuth } from "firebase/auth"
+import {db} from "../firebase"
+import { v4 as uuid4 } from "uuid";
 
 export default function CreateListing() {
     const navigate = useNavigate();
+    const auth = getAuth();
     const [geoLocationEnabled, setGeoLocationEnabled] = useState(true)
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
@@ -69,7 +79,7 @@ export default function CreateListing() {
     async function onSubmit(e){
         e.preventDefault();
         setLoading(true);
-        if (+discountedPrice >= regularPrice) {
+        if (+discountedPrice >= +regularPrice) {
             setLoading(false);
             toast.error("Discounted Price needs to be less than regular Price");
             return;
@@ -98,6 +108,52 @@ export default function CreateListing() {
                 geolocation.lat = latitude;
                 geolocation.lng = longitude;
             }
+
+            async function storeImage(image){
+                return new Promise((resolve, reject) => {
+                    const storage = getStorage();
+                    const filename = `${auth.currentUser.uid}-${image.name}-${uuid4()}`;
+                    const storageRef = ref(storage, filename);
+                    const uploadTask = uploadBytesResumable(storageRef, image);
+                    uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        // Observe state change events such as progress, pause, and resume
+                        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload is ' + progress + '% done');
+                        switch (snapshot.state) {
+                        case 'paused':
+                            console.log('Upload is paused');
+                            break;
+                        case 'running':
+                            console.log('Upload is running');
+                            break;
+                        }
+                    }, 
+                    (error) => {
+                        // Handle unsuccessful uploads
+                        reject(error);
+                    }, 
+                    () => {
+                        // Handle successful uploads on complete
+                        // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        resolve(downloadURL);
+                        });
+                    }
+                    );
+                })
+            }
+
+            const imgUrls = await Promise.all(
+                [...images].map((image) => storeImage(image))
+            ).catch((error) => {
+                setLoading(false);
+                toast.error("Images not uploaded");
+                return;
+            })
+
+            console.log(imgUrls);
         }
     }
 
