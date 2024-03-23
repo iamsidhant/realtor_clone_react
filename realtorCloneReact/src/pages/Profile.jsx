@@ -12,6 +12,7 @@ import {
    orderBy, 
    query, 
    where } from 'firebase/firestore';
+import ListingItem from '../components/ListingItem';   
 
 export default function Profile() {
   const auth = getAuth();
@@ -57,7 +58,7 @@ export default function Profile() {
 
   useEffect(() => {
   async function fetchUserListings(){
-  const listingRef = collection(db, "listing");
+  const listingRef = collection(db, "listings");
   const q = query(
     listingRef,
     where("userRef", "==", auth.currentUser.uid),
@@ -65,7 +66,7 @@ export default function Profile() {
     );
     const querySnap = await getDocs(q);
     let listings = [];
-    querySnap.forEach((doc) = {
+    querySnap.forEach((doc) => {
       return listings.push({
         id: doc.id,
         data: doc.data(),
@@ -129,6 +130,24 @@ export default function Profile() {
         </button>
       </div>
     </section>
+    <div className='max-w-6xl px-3 mt-6 mx-auto'>
+      {!loading && listings.length > 0 && (
+        <>
+        <h2 className='text-2xl text-center font-semibold mb-6'>
+          My Listings
+        </h2>
+        <ul className='sm:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
+          {listings.map((listing) => (
+            <ListingItem
+            key={listing.id}
+            id={listing.id}
+            listing={listing.data} 
+            />
+          ))}
+        </ul>
+        </>
+      )}
+    </div>
     </>
   )
 }
