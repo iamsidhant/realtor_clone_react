@@ -1,14 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {toast} from "react-toastify"
 import {getAuth, updateProfile} from "firebase/auth";
 import {db} from "../firebase"
 import { FcHome } from "react-icons/fc";
+import {
+   collection, 
+   doc, 
+   getDocs, 
+   orderBy, 
+   query, 
+   where } from 'firebase/firestore';
 
 export default function Profile() {
   const auth = getAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true)
+  const [listings, setListings] = useState(null)
   const [changeDetail, setChangeDetail] = useState(false)
   const [formData, setFormData] = useState({
     name: auth.currentUser.displayName,
@@ -45,6 +54,28 @@ export default function Profile() {
       toast.error("Could not update the profile details")
     }
   }
+
+  useEffect(() => {
+  async function fetchUserListings(){
+  const listingRef = collection(db, "listing");
+  const q = query(
+    listingRef,
+    where("userRef", "==", auth.currentUser.uid),
+    orderBy("timestamp", "desc")
+    );
+    const querySnap = await getDocs(q);
+    let listings = [];
+    querySnap.forEach((doc) = {
+      return listings.push({
+        id: doc.id,
+        data: doc.data(),
+      })
+    });
+    setListings(listings);
+    setLoading(false);
+  } 
+  fetchUserListings();
+  }, [auth.currentUser.uid])
 
   return (
     <>
