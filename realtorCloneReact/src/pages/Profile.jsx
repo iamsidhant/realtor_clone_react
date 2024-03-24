@@ -7,10 +7,12 @@ import {db} from "../firebase"
 import { FcHome } from "react-icons/fc";
 import {
    collection, 
+   deleteDoc, 
    doc, 
    getDocs, 
    orderBy, 
    query, 
+   updateDoc,
    where
   } from 'firebase/firestore';
 import ListingItem from '../components/ListingItem';   
@@ -53,7 +55,7 @@ export default function Profile() {
       }
       toast.success("Profile details updated");
     } catch (error) {
-      toast.error("Could not update the profile details")
+      toast.error("Could not update the profile details");
     }
   }
 
@@ -78,6 +80,21 @@ export default function Profile() {
     } 
     fetchUserListings();
   }, [auth.currentUser.uid])
+
+  async function onDelete(listingID){
+    if (window.confirm("Are you sure you want to delete?")) {
+      await deleteDoc(doc(db, "listings", listingID));
+      const updateListings = listings.filter(
+        (listing) => listing.id !== listingID
+      );
+      setListings(updateListings);
+      toast.success("Successfully deleted the listing");
+    }
+  }
+
+  function onEdit(listingID){
+    navigate(`/edit-listing/${listingID}`);
+  }
 
   return (
     <>
@@ -143,6 +160,8 @@ export default function Profile() {
               key={listing.id}
               id={listing.id}
               listing={listing.data} 
+              onDelete={() => onDelete(listing.id)}
+              onEdit={() => onEdit(listing.id)}
               />
             ))}
           </ul>
