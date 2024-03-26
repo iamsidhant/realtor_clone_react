@@ -3,11 +3,21 @@ import { useParams } from "react-router-dom";
 import Spinner from '../components/Spinner';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { Swiper, SwiperSlide } from "swiper/react";
+import SwiperCore, {
+    EffectFade,
+    Autoplay,
+    Navigation,
+    Pagination
+} from "swiper";
+import "swiper/css";
 
 function Listing() {
     const params = useParams();
     const [listing, setListing] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    SwiperCore.use([Autoplay, Navigation, Pagination]);
 
     useEffect(() => {
         async function fetchListing(){
@@ -16,7 +26,6 @@ function Listing() {
             if (docSnap.exists()) {
                 setListing(docSnap.data());
                 setLoading(false);
-                console.log(listing);
             }
         }
         fetchListing();
@@ -25,7 +34,29 @@ function Listing() {
         return <Spinner />;
     }
     return (
-        <div>{listing.name}</div>
+        <main>
+            <Swiper
+            slidesPerView={1}
+            navigation
+            pagination={{ type: "progressbar" }}
+            effect='fade'
+            modules={[EffectFade]}
+            autoplay={{ delay: 3000 }}
+            >
+                {listing.imgUrls.map((url, index) => {
+                    <SwiperSlide key={index}>
+                        <div 
+                        className='relative w-full overflow-hidden h-[300px]'
+                        style={{
+                            background: `url(${listing.imgUrls[index]}) center no-repeat`,
+                            backgroundSize: "cover",
+                        }}
+                        >
+                        </div>
+                    </SwiperSlide>
+                })}
+            </Swiper>
+        </main>
     )
 }
 
