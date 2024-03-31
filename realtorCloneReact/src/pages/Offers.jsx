@@ -5,6 +5,7 @@ import {
    limit,
    orderBy,
    query,
+   startAfter,
    where,
 } from 'firebase/firestore';
 import { toast } from "react-toastify";
@@ -57,6 +58,7 @@ export default function Offers() {
         listingsRef,
         where("offer", "==", "true"),
         orderBy("timestamp", "desc"),
+        startAfter(lastFetchedListing),
         limit(4)
       );
       const querySnap = await getDocs(q);
